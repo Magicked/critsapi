@@ -4,7 +4,8 @@ import logging
 import os
 import requests
 
-from lib.exceptions import InvalidOptionError
+from lib.exceptions import CRITsOperationalError
+from lib.exceptions import CRITsInvalidTypeError
 from lib.crits.vocabulary.indicators import IndicatorThreatTypes as itt
 from lib.crits.vocabulary.indicators import IndicatorAttackTypes as iat
 
@@ -40,6 +41,8 @@ class CRITsAPI():
         return None
 
     def add_indicator(self,
+                      value,
+                      itype,
                       source='',
                       reference='',
                       method='',
@@ -51,15 +54,15 @@ class CRITsAPI():
                       add_relationship=True,
                       indicator_confidence='unknown',
                       indicator_impact='unknown',
-                      itype=None,
                       threat_type=itt.UNKNOWN,
                       attack_type=iat.UNKNOWN,
-                      value=None,
                       description=''):
         """
         Add an indicator to CRITs
 
         Args:
+            value: The indicator itself
+            itype: The overall indicator type. See your CRITs vocabulary
             source: Source of the information
             reference: A reference where more information can be found
             method: The method for adding this indicator
@@ -74,10 +77,8 @@ class CRITsAPI():
                         relationship between the indicator and domain TLOs
             indicator_confidence: The confidence of the indicator
             indicator_impact: The impact of the indicator
-            itype: The overall indicator type. See your CRITs vocabulary
             threat_type: The threat type of the indicator
             attack_type: the attack type of the indicator
-            value: The indicator itself
             description: A description of this indicator
         Returns:
             JSON object for the indicator or None if it failed.
@@ -558,7 +559,53 @@ class CRITsAPI():
                       '{3}'.format(r.status_code, r.text, left_id, right_id))
             return False
 
+        def status_update(self, crits_id, crits_type, status):
+            """
+            Update the status of the TLO. By default, the options are:
+            - New
+            - In Progress
+            - Analyzed
+            - Deprecated
+
+            Args:
+                crits_id: The object id of the TLO
+                crits_type: The type of TLO. This must be 'Indicator', ''
+                status: The status to change.
+            Returns:
+                True if the status was updated. False otherwise.
+            Raises:
+                CRITsInvalidTypeError
+            """
+            obj_type = self._type_translation(crits_type)
+            patch_url = "{0}/{1}/{2}/".format(self.url, obj_type, crits_id)
+            params = {
+                'api_key': self.api_key,
+                'username': self.username,
+            }
+
+            data = {
+                'action': 'status_update',
+                'value': status,
+            }
+
+            r = requests.patch(patch_url, params=params, data=data,
+                               verify=self.verify, proxy=self.proxy)
+            if r.status_code == 200:
+                self.log.debug('Object {} set to {}'.format(crits_id,
+                                                            status))
+                return True
+            else:
+                self.log.error('Attempted to set object id {} to '
+                               'Informational, but did not receive a '
+                               '200'.format(crits_id))
+                self.log.error('Error message was: {}'.format(r.text))
+            return False
+
     def _type_translation(self, str_type):
+        """
+        Internal method to translate the named CRITs TLO type to a URL
+        specific string.
+        """
         if str_type == 'Indicator':
             return 'indicators'
         if str_type == 'Domain':
@@ -576,5 +623,5 @@ class CRITsAPI():
         if str_type == 'Backdoor':
             return 'backdoors'
 
-        raise CRITsOperationalError('Invalid object type specified: '
+        raise CRITsInvalidTypeError('Invalid object type specified: '
                                     '{}'.format(str_type))
