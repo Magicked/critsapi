@@ -304,10 +304,10 @@ class CRITsAPI():
         return None
 
     def add_email(self,
+                  email_path,
                   source,
                   reference,
                   method='',
-                  email_path='',
                   upload_type='raw',
                   campaign='',
                   confidence='',
@@ -319,16 +319,18 @@ class CRITsAPI():
         currently.
 
         Args:
+            email_path: The path on disk of the email.
             source: Source of the information
             reference: A reference where more information can be found
             method: The method for obtaining the email.
-            email_path: The path on disk of the email.
             upload_type: 'raw', 'eml', or 'msg'
             campaign: An associated campaign
             confidence: The campaign confidence
             description: A description of the email
             bucket_list: A list of bucket list items to add
             password: A password for a 'msg' type.
+        Returns:
+            A JSON email object from CRITs or None if there was an error.
         """
         if not os.path.isfile(email_path):
             log.error('{} is not a file'.format(email_path))
@@ -477,6 +479,71 @@ class CRITsAPI():
             log.error('Non-200 status code: {}'.format(r.status_code))
         return None
 
+    def get_backdoors(self, name):
+        """
+        Searches a backdoor given the name. Returns multiple results
+
+        Args:
+            name: The name of the backdoor. This can be an alias.
+        Returns:
+            Returns a JSON object contain one or more backdoor results or
+            None if not found.
+        """
+        params = {}
+        params['or'] = 1
+        params['c-name'] = name
+        params['c-aliases__in'] = name
+        r = requests.get('{0}/backdoors/'.format(self.url),
+                         params=params,
+                         verify=self.verify,
+                         proxies=self.proxies)
+        if r.status_code == 200:
+            result_data = json.loads(r.text)
+            if 'meta' in result_data:
+                if 'total_count' in result_data['meta']:
+                    if result_data['meta']['total_count'] > 0:
+                        return result_data
+        else:
+            log.error('Non-200 status code: {}'.format(r.status_code))
+        return None
+
+    def get_backdoor(self, name, version=''):
+        """
+        Searches for the backdoor based on name and version.
+
+        Args:
+            name: The name of the backdoor. This can be an alias.
+            version: The version.
+        Returns:
+            Returns a JSON object contain one or more backdoor results or
+            None if not found.
+        """
+        params = {}
+        params['or'] = 1
+        params['c-name'] = name
+        params['c-aliases__in'] = name
+        r = requests.get('{0}/backdoors/'.format(self.url),
+                         params=params,
+                         verify=self.verify,
+                         proxies=self.proxies)
+        if r.status_code == 200:
+            result_data = json.loads(r.text)
+            if 'meta' not in result_data:
+                return None
+            if 'total_count' not in result_data['meta']:
+                return None
+            if result_data['meta']['total_count'] <= 0:
+                return None
+            if 'objects' not in result_data:
+                return None
+            for backdoor in result_data['objects']:
+                if 'version' in backdoor:
+                    if backdoor['version'] == version:
+                        return backdoor
+        else:
+            log.error('Non-200 status code: {}'.format(r.status_code))
+        return None
+
     def has_relationship(self, left_id, left_type, right_id, right_type,
                          rel_type='Related To'):
         """
@@ -559,47 +626,47 @@ class CRITsAPI():
                       '{3}'.format(r.status_code, r.text, left_id, right_id))
             return False
 
-        def status_update(self, crits_id, crits_type, status):
-            """
-            Update the status of the TLO. By default, the options are:
-            - New
-            - In Progress
-            - Analyzed
-            - Deprecated
+    def status_update(self, crits_id, crits_type, status):
+        """
+        Update the status of the TLO. By default, the options are:
+        - New
+        - In Progress
+        - Analyzed
+        - Deprecated
 
-            Args:
-                crits_id: The object id of the TLO
-                crits_type: The type of TLO. This must be 'Indicator', ''
-                status: The status to change.
-            Returns:
-                True if the status was updated. False otherwise.
-            Raises:
-                CRITsInvalidTypeError
-            """
-            obj_type = self._type_translation(crits_type)
-            patch_url = "{0}/{1}/{2}/".format(self.url, obj_type, crits_id)
-            params = {
-                'api_key': self.api_key,
-                'username': self.username,
-            }
+        Args:
+            crits_id: The object id of the TLO
+            crits_type: The type of TLO. This must be 'Indicator', ''
+            status: The status to change.
+        Returns:
+            True if the status was updated. False otherwise.
+        Raises:
+            CRITsInvalidTypeError
+        """
+        obj_type = self._type_translation(crits_type)
+        patch_url = "{0}/{1}/{2}/".format(self.url, obj_type, crits_id)
+        params = {
+            'api_key': self.api_key,
+            'username': self.username,
+        }
 
-            data = {
-                'action': 'status_update',
-                'value': status,
-            }
+        data = {
+            'action': 'status_update',
+            'value': status,
+        }
 
-            r = requests.patch(patch_url, params=params, data=data,
-                               verify=self.verify, proxy=self.proxy)
-            if r.status_code == 200:
-                self.log.debug('Object {} set to {}'.format(crits_id,
-                                                            status))
-                return True
-            else:
-                self.log.error('Attempted to set object id {} to '
-                               'Informational, but did not receive a '
-                               '200'.format(crits_id))
-                self.log.error('Error message was: {}'.format(r.text))
-            return False
+        r = requests.patch(patch_url, params=params, data=data,
+                           verify=self.verify, proxy=self.proxy)
+        if r.status_code == 200:
+            self.log.debug('Object {} set to {}'.format(crits_id,
+                                                        status))
+            return True
+        else:
+            self.log.error('Attempted to set object id {} to '
+                           'Informational, but did not receive a '
+                           '200'.format(crits_id))
+            self.log.error('Error message was: {}'.format(r.text))
+        return False
 
     def _type_translation(self, str_type):
         """
