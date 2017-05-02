@@ -4,10 +4,10 @@ import logging
 import os
 import requests
 
-from lib.exceptions import CRITsOperationalError
-from lib.exceptions import CRITsInvalidTypeError
-from lib.crits.vocabulary.indicators import IndicatorThreatTypes as itt
-from lib.crits.vocabulary.indicators import IndicatorAttackTypes as iat
+from exceptions import CRITsOperationalError
+from exceptions import CRITsInvalidTypeError
+from vocabulary import IndicatorThreatTypes as itt
+from vocabulary import IndicatorAttackTypes as iat
 
 log = logging.getLogger()
 
