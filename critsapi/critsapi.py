@@ -189,6 +189,7 @@ class CRITsAPI():
                         method='',
                         file_format='raw',
                         file_password='',
+                        sample_name='',
                         campaign='',
                         confidence='',
                         description='',
@@ -203,6 +204,8 @@ class CRITsAPI():
             method: The method for obtaining the sample.
             file_format: Must be raw, zip, or rar.
             file_password: The password of a zip or rar archived sample
+            sample_name: Specify a filename for the sample rather than using
+                the name on disk
             campaign: An associated campaign
             confidence: The campaign confidence
             description: A text description of the sample
@@ -224,6 +227,8 @@ class CRITsAPI():
                 'description': description,
                 'bucket_list': ','.join(bucket_list),
             }
+            if sample_name != '':
+                data['filename'] = sample_name
             with open(sample_path, 'rb') as fdata:
                 if file_password:
                     data['password'] = file_password
