@@ -673,8 +673,8 @@ class CRITsAPI():
             self.log.error('Error message was: {}'.format(r.text))
         return False
 
-    def source_add_update(self, crits_id, crits_type, source, method='',
-                          reference=''):
+    def source_add_update(self, crits_id, crits_type, source,
+                          action_type='add', method='', reference=''):
         """
         """
         type_trans = self._type_translation(crits_type)
@@ -687,6 +687,7 @@ class CRITsAPI():
 
         data = {
             'action': 'source_add_update',
+            'action_type': action_type,
             'source': source,
             'method': method,
             'reference': reference
