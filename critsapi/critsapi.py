@@ -674,11 +674,17 @@ class CRITsAPI():
         return False
 
     def source_add_update(self, crits_id, crits_type, source,
-                          action_type='add', method='', reference=''):
+                          action_type='add', method='', reference='',
+                          date=None):
         """
+        date must be in the format "%Y-%m-%d %H:%M:%S.%f"
         """
         type_trans = self._type_translation(crits_type)
         submit_url = '{}/{}/{}/'.format(self.url, type_trans, crits_id)
+
+        if date is None:
+            date = datetime.datetime.now()
+            date = datetime.datetime.strftime(date, '%Y-%m-%d %H:%M:%S.%f')
 
         params = {
             'api_key': self.api_key,
@@ -690,10 +696,11 @@ class CRITsAPI():
             'action_type': action_type,
             'source': source,
             'method': method,
-            'reference': reference
+            'reference': reference,
+            'date': date
         }
 
-        r = requests.patch(submit_url, params=params, data=data,
+        r = requests.patch(submit_url, params=params, data=json.dumps(data),
                            proxies=self.proxies, verify=self.verify)
         if r.status_code == 200:
             log.debug('Source {0} added successfully to {1} '
