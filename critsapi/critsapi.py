@@ -581,8 +581,8 @@ class CRITsAPI():
         return False
 
     def forge_relationship(self, left_id, left_type, right_id, right_type,
-                           rel_type, rel_date=None, rel_confidence='high',
-                           rel_reason=''):
+                           rel_type='Related To', rel_date=None,
+                           rel_confidence='high', rel_reason=''):
         """
         Forges a relationship between two TLOs.
 
