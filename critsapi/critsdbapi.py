@@ -132,6 +132,26 @@ class CRITsDBAPI():
             )
             return result
 
+    def remove_bucket_list_item(self, id, collection, item):
+        """
+        Removes an item from the bucket list
+
+        Args:
+            id: the CRITs object id of the TLO
+            collection: The db collection. See main class documentation.
+            item: the bucket list item to remove
+        Returns:
+            The mongodb result
+        """
+        if type(id) is not ObjectId:
+            id = ObjectId(id)
+        obj = getattr(self.db, collection)
+        result = obj.update(
+            {'_id': id},
+            {'$pull': {'bucket_list': item}}
+        )
+        return result
+
     def add_bucket_list_item(self, id, collection, item):
         """
         Adds an item to the bucket list
