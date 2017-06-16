@@ -25,32 +25,42 @@ class CRITsDBAPI():
     """
 
     def __init__(self,
+                 mongo_uri='',
                  mongo_host='localhost',
                  mongo_port=27017,
                  mongo_user='',
                  mongo_pass='',
                  db_name='crits'):
         """
-        Create our CRITsDBAPI object.
+        Create our CRITsDBAPI object. You may specify a full mongodb uri or
+        the arguments individually.
 
         Args:
+            mongo_uri: A full mongo uri in the form of:
+                mongodb://user:pass@mongo_server:port
             mongo_host: The server name/ip where the mongo db is hosted
             mongo_port: The port listening for connections
             mongo_user: Mongo username (if using)
             mongo_pass: Password for the user (if using)
             db_name: The name of the CRITs database.
         """
-        # Build the authentication portion. Simple authentication only for now.
-        auth_str = ''
-        if mongo_user != '':
-            auth_str = mongo_user
-        if mongo_pass != '' and mongo_user != '':
-            auth_str = auth_str + ':' + mongo_pass
-        if auth_str != '':
-            auth_str = auth_str + '@'
-        # Build the URI
-        self.mongo_uri = 'mongodb://{}{}:{}'.format(auth_str, mongo_host,
-                                                    mongo_port)
+        # If the user provided a URI, we will use that. Otherwise we will build
+        # a URI from the other arguments.
+        if mongo_uri != '':
+            self.mongo_uri = mongo_uri
+        else:
+            # Build the authentication portion. Simple authentication only for
+            # now.
+            auth_str = ''
+            if mongo_user != '':
+                auth_str = mongo_user
+            if mongo_pass != '' and mongo_user != '':
+                auth_str = auth_str + ':' + mongo_pass
+            if auth_str != '':
+                auth_str = auth_str + '@'
+            # Build the URI
+            self.mongo_uri = 'mongodb://{}{}:{}'.format(auth_str, mongo_host,
+                                                        mongo_port)
         self.db_name = db_name
         self.client = None
         self.db = None
