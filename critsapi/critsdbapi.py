@@ -12,8 +12,8 @@ class CRITsDBAPI():
     Interface to the raw CRITs mongodb backend. This is typically much faster
     than using the provided web API.
 
-    Most queries require a "collection" variable. The is the mongodb
-    collection for the TLO in CRITs. It must follow the specific mongo
+    Most queries require a "collection" variable. The is a string of the
+    mongodb collection for the TLO in CRITs. It must follow the specific mongo
     collection name for the corresponding TLO. The following are acceptable:
         - indicators
         - sample
@@ -181,3 +181,17 @@ class CRITsDBAPI():
             {'$addToSet': {'bucket_list': item}}
         )
         return result
+
+    def get_campaign_name_list(self):
+        """
+        Returns a list of all valid campaign names
+
+        Returns:
+            List of strings containing all valid campaign names
+        """
+        campaigns = self.find('campaigns', {})
+        campaign_names = []
+        for campaign in campaigns:
+            if 'name' in campaign:
+                campaign_names.append(campaign['name'])
+        return campaign_names
