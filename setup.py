@@ -29,7 +29,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/Magicked/critsapi',
+    url='https://github.com/lolnate/critsapi',
 
     # Author details
     author='Nate Hausrath',
