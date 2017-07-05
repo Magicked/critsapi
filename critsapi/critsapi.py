@@ -420,6 +420,54 @@ class CRITsAPI():
                       '{1}'.format(r.status_code, r.text))
         return None
 
+    def add_profile_point(self,
+                          value,
+                          source='',
+                          reference='',
+                          method='',
+                          ticket='',
+                          campaign=None,
+                          confidence=None,
+                          bucket_list=[]):
+        """
+        Add an indicator to CRITs
+
+        Args:
+            value: The profile point itself
+            source: Source of the information
+            reference: A reference where more information can be found
+            method: The method for adding this indicator
+            campaign: If the indicator has a campaign, add it here
+            confidence: The confidence this indicator belongs to the given
+                        campaign
+            bucket_list: Bucket list items for this indicator
+            ticket: A ticket associated with this indicator
+        Returns:
+            JSON object for the indicator or None if it failed.
+        """
+        # Time to upload these indicators
+        data = {
+            'api_key': self.api_key,
+            'username': self.username,
+            'source': source,
+            'reference': reference,
+            'method': '',
+            'campaign': campaign,
+            'confidence': confidence,
+            'bucket_list': ','.join(bucket_list),
+            'ticket': ticket,
+            'value': value,
+            }
+
+        r = requests.post("{0}/profile_points/".format(self.url), data=data,
+                          verify=self.verify, proxies=self.proxies)
+        if r.status_code == 200:
+            log.debug("Profile Point uploaded successfully - {}".format(value))
+            pp = json.loads(r.text)
+            return pp
+
+        return None
+
     def get_events(self, event_title, regex=False):
         """
         Search for events with the provided title
