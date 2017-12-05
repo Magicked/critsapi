@@ -709,7 +709,7 @@ class CRITsAPI():
         }
 
         r = requests.patch(patch_url, params=params, data=data,
-                           verify=self.verify, proxy=self.proxy)
+                           verify=self.verify, proxy=self.proxies)
         if r.status_code == 200:
             self.log.debug('Object {} set to {}'.format(crits_id,
                                                         status))
