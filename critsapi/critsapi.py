@@ -711,14 +711,13 @@ class CRITsAPI():
         r = requests.patch(patch_url, params=params, data=data,
                            verify=self.verify, proxies=self.proxies)
         if r.status_code == 200:
-            self.log.debug('Object {} set to {}'.format(crits_id,
-                                                        status))
+            log.debug('Object {} set to {}'.format(crits_id, status))
             return True
         else:
-            self.log.error('Attempted to set object id {} to '
-                           'Informational, but did not receive a '
-                           '200'.format(crits_id))
-            self.log.error('Error message was: {}'.format(r.text))
+            log.error('Attempted to set object id {} to '
+                      'Informational, but did not receive a '
+                      '200'.format(crits_id))
+            log.error('Error message was: {}'.format(r.text))
         return False
 
     def source_add_update(self, crits_id, crits_type, source,
