@@ -102,6 +102,21 @@ class CRITsDBAPI():
         obj = getattr(self.db, collection)
         result = obj.find_one(query)
         return result
+    
+    def find_distinct(self, collection, key):
+        """
+        Search a collection for the distinct key values provided.
+
+        Args:
+            collection: The db collection. See main class documentation.
+            key: The name of the key to find distinct values. For example with
+                 the indicators collection, the key could be "type".
+        Returns:
+            List of distinct values.
+        """
+        obj = getattr(self.db, collection)
+        result = obj.distinct(key)
+        return result
 
     def add_embedded_campaign(self, id, collection, campaign, confidence,
                               analyst, date, description):
