@@ -87,6 +87,19 @@ class CRITsDBAPI():
         obj = getattr(self.db, collection)
         result = obj.find(query)
         return result
+    
+    def find_all(self, collection):
+        """
+        Search a collection for all available items.
+
+        Args:
+            collection: The db collection. See main class documentation.
+        Returns:
+            List of all items in the collection.
+        """
+        obj = getattr(self.db, collection)
+        result = obj.find()
+        return result
 
     def find_one(self, collection, query):
         """
